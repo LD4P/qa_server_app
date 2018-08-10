@@ -15,7 +15,7 @@ class ScenarioLogger
   # Add a scenario to the log
   # @param authority_name [String] name of the authority the scenario was run against
   # @param status [Symbol] indicating whether the scenario passed, failed, or has unknown status (see PASS, FAIL, UNKNOWN constants)
-  # @param validation_type [Symbol] the type of validation this status data describes (e.g. :connection, :accuracy)
+  # @param validation_type [Symbol] the type of validation this status data describes (e.g. :connection, :accuracy, :performance)
   # @param subauth [String] name of the subauthority the scenario was run against
   # @param service [String] identifies the primary service provider (e.g. 'ld4l_cache', 'direct', etc.)
   # @param action [String] type of scenario (i.e. 'term', 'search')
@@ -24,21 +24,21 @@ class ScenarioLogger
   # @param expected [Integer] the expected result (e.g. min size of result OR max position of subject within results)
   # @param actual [Integer] the actual result (e.g. actual size of results OR actual position of subject within results)
   # @param target [String] the expected target that was validated (e.g. subject_uri for query, pref label for term fetch)
-  def add(authority_name:, validation_type: '', status:, subauth: '', service: '', action: '', url: '', error_message: '', expected: nil, actual: nil, target: nil)
+  # @param request_run_time [BigDecimal] the amount of time to retrieve data from the authority
+  # @param normalization_run_time [BigDecimal] the amount of time to normalize the retrieved data into json
+  def add(authority_name:, validation_type: '', status:, subauth: '', service: '', action: '', url: '',
+          error_message: '', expected: nil, actual: nil, target: nil, request_run_time: nil, normalization_run_time: nil)
     @test_count += 1
     case status
-      when PASS
-        status_label = '√'
-      when UNKNOWN
-        status_label = '?'
-        @failure_count += 1
-      when FAIL
-        status_label = 'X'
-        @failure_count += 1
+    when PASS
+      # nothing to do
+    when UNKNOWN
+      @failure_count += 1
+    when FAIL
+      @failure_count += 1
     end
     @log << { type: validation_type,
               status: status,
-              status_label: status_label,
               authority_name: authority_name,
               subauthority_name: subauth,
               service: service,
@@ -47,7 +47,9 @@ class ScenarioLogger
               expected: expected,
               actual: actual,
               target: target,
-              err_message: error_message }
+              err_message: error_message,
+              request_run_time: request_run_time,
+              normalization_run_time: normalization_run_time }
   end
 
   # Delete from the log any tests that passed.

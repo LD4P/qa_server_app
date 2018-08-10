@@ -60,6 +60,18 @@ class CheckStatusPresenter
     "status-#{status[:status].to_s}"
   end
 
+  # @return [String] the name of the css style class to use for the status cell based on the status of the scenario test.
+  def status_label(status)
+    case status[:status]
+    when :good
+      ScenarioRunHistory::GOOD_MARKER
+    when :bad
+      ScenarioRunHistory::BAD_MARKER
+    when :unknown
+      ScenarioRunHistory::UNKNOWN_MARKER
+    end
+  end
+
   def value_all_collections
     CheckStatusController::ALL_AUTHORITIES
   end

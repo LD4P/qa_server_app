@@ -32,7 +32,7 @@ class ScenarioValidator
   private
 
     # Log the structure of the scenario and status of a test run.
-    def log(status: nil, errmsg: nil, expected: nil, actual: nil, target: nil)
+    def log(status: nil, errmsg: nil, expected: nil, actual: nil, target: nil, request_run_time: nil, normalization_run_time: nil)
       status_log.add(authority_name: authority_name,
                      status: status,
                      validation_type: scenario_validation_type,
@@ -43,7 +43,9 @@ class ScenarioValidator
                      error_message: errmsg,
                      expected: expected,
                      actual: actual,
-                     target: target)
+                     target: target,
+                     request_run_time: request_run_time,
+                     normalization_run_time: normalization_run_time)
     end
 
     def run_accuracy_scenario
@@ -58,13 +60,16 @@ class ScenarioValidator
     # @return [Symbol] :good (PASS) or :unknown (UNKNOWN) based on whether enough results were returned
     def test_connection(min_expected_size: MIN_EXPECTED_SIZE, scenario_type_name:)
       begin
+        dt_start = Time.now
         results = yield if block_given?
+        dt_end = Time.now
         actual_size = results.to_s.length
         status = actual_size > min_expected_size ? PASS : UNKNOWN
         errmsg = (status == PASS) ? '' : "#{scenario_type_name.capitalize} scenario unknown status; cause: Results actual size (#{actual_size} < expected size (#{min_expected_size})"
-        log(status: status, errmsg: errmsg)
+        log(status: status, errmsg: errmsg, normalization_run_time: (dt_end - dt_start)) # TODO: need to get run times from results
       rescue Exception => e
-        log(status: FAIL, errmsg: "Exception executing #{scenario_type_name} scenario; cause: #{e.message}")
+        dt_end = Time.now
+        log(status: FAIL, errmsg: "Exception executing #{scenario_type_name} scenario; cause: #{e.message}", request_run_time: (dt_end - dt_start))
       end
     end
 
